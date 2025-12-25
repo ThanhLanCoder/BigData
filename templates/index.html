@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dự đoán mua hàng</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .animate-spin {
+      animation: spin 1s linear infinite;
+    }
+  </style>
+</head>
+
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+
+<div class="w-full max-w-3xl bg-white rounded-xl shadow-lg p-6">
+  <h1 class="text-3xl font-bold text-center mb-6">
+    🔮 Dự đoán hành vi mua hàng
+  </h1>
+
+  <!-- FORM -->
+  <form id="predictForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+    <div>
+      <label class="block text-sm font-medium">Thời gian truy cập (giây)</label>
+      <input type="number" name="duration_secs" min="0" required
+        class="mt-1 w-full border rounded px-3 py-2">
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium">Số byte</label>
+      <input type="number" name="bytes" min="0" required
+        class="mt-1 w-full border rounded px-3 py-2">
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium">Truy cập từ</label>
+      <select name="accessed_from" required class="mt-1 w-full border rounded px-3 py-2">
+        <option value="">-- Chọn --</option>
+        <option value="chrome">Chrome</option>
+        <option value="mozilla firefox">Firefox</option>
+        <option value="safari">Safari</option>
+        <option value="android app">Android App</option>
+        <option value="ios app">iOS App</option>
+        <option value="microsoft edge">Edge</option>
+        <option value="others">Khác</option>
+      </select>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium">Giới tính</label>
+      <select name="gender" required class="mt-1 w-full border rounded px-3 py-2">
+        <option value="">-- Chọn --</option>
+        <option value="Male">Nam</option>
+        <option value="Female">Nữ</option>
+      </select>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium">Membership</label>
+      <select name="membership" required class="mt-1 w-full border rounded px-3 py-2">
+        <option value="">-- Chọn --</option>
+        <option value="Normal">Normal</option>
+        <option value="Premium">Premium</option>
+      </select>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium">Thanh toán</label>
+      <select name="pay_method" required class="mt-1 w-full border rounded px-3 py-2">
+        <option value="">-- Chọn --</option>
+        <option value="Credit Card">Credit Card</option>
+        <option value="Debit Card">Debit Card</option>
+        <option value="Cash">Cash</option>
+        <option value="Others">Others</option>
+      </select>
+    </div>
+
+    <div class="md:col-span-2">
+      <button id="predictBtn" type="submit"
+        class="w-full bg-blue-600 text-white py-3 rounded-lg flex justify-center items-center gap-2">
+        <span id="btnText">Dự đoán</span>
+        <svg id="spinner" class="hidden w-5 h-5 animate-spin" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10" stroke="white" stroke-width="4" fill="none" opacity="0.3"/>
+          <path d="M12 2a10 10 0 0 1 10 10" stroke="white" stroke-width="4" fill="none"/>
+        </svg>
+      </button>
+    </div>
+  </form>
+
+  <!-- RESULT -->
+  <div id="resultBox" class="hidden mt-6 text-center">
+    <p id="resultText" class="text-xl font-bold"></p>
+    <p id="probText" class="text-gray-600"></p>
+  </div>
+
+  <!-- ERROR -->
+  <div id="errorBox" class="hidden mt-6 bg-red-100 text-red-600 p-3 rounded text-center"></div>
+</div>
+
+<script>
+const form = document.getElementById("predictForm");
+const btn = document.getElementById("predictBtn");
+const btnText = document.getElementById("btnText");
+const spinner = document.getElementById("spinner");
+const resultBox = document.getElementById("resultBox");
+const resultText = document.getElementById("resultText");
+const probText = document.getElementById("probText");
+const errorBox = document.getElementById("errorBox");
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  resultBox.classList.add("hidden");
+  errorBox.classList.add("hidden");
+
+  btn.disabled = true;
+  btnText.textContent = "Đang dự đoán...";
+  spinner.classList.remove("hidden");
+
+  const data = Object.fromEntries(new FormData(form));
+
+  try {
+    const res = await fetch("/predict", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        duration_secs: Number(data.duration_secs),
+        bytes: Number(data.bytes),
+        accessed_from: data.accessed_from,
+        gender: data.gender,
+        membership: data.membership,
+        pay_method: data.pay_method
+      })
+    });
+
+    const json = await res.json();
+    if (json.error) throw new Error(json.error);
+
+    resultBox.classList.remove("hidden");
+    resultText.textContent =
+      json.prediction === 1 ? " Có khả năng mua hàng" : " Không mua hàng";
+    probText.textContent =
+      `Xác suất: ${(json.probability * 100).toFixed(2)}%`;
+
+  } catch (err) {
+    errorBox.textContent = "Lỗi: " + err.message;
+    errorBox.classList.remove("hidden");
+  } finally {
+    btn.disabled = false;
+    btnText.textContent = "Dự đoán";
+    spinner.classList.add("hidden");
+  }
+});
+</script>
+
+</body>
+</html>

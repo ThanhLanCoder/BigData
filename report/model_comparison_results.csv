@@ -1,0 +1,4 @@
+Model,accuracy,weightedPrecision,weightedRecall,f1
+Logistic Regression,0.6647,0.6746,0.6647,0.6674
+Decision Tree,0.676,0.6743,0.676,0.675
+Random Forest,0.6781,0.678,0.6781,0.6781
