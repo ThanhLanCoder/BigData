@@ -13,6 +13,8 @@ Toàn bộ quy trình được xây dựng bằng **Spark DataFrame** và **Spar
 ---
 
 ##  Mô tả dữ liệu
+Nguồn: (https://www.kaggle.com/datasets/kzmontage/e-commerce-website-logs)
+
 Dữ liệu sử dụng là log truy cập người dùng trong hệ thống thương mại điện tử, bao gồm các thuộc tính chính:
 
 - `duration_(secs)` – Thời gian truy cập (giây)
